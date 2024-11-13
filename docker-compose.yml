@@ -1,0 +1,64 @@
+services:
+
+  social-media-manage:
+    container_name: ${APP_CONTAINER}
+    build: ./docker/php
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - ${APP_PORT}:80
+    networks:
+      - shopping.scene.social.media.network
+    hostname: 'shopping-scene-social-media.local'
+    restart: always  # Added restart policy
+
+  mysql_db:
+    container_name: ${DB_CONTAINER}
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: "I-M-Groot"
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - 'shopping-scene-social-media-db-volume:/var/lib/mysql'
+      - './database/db:/docker-entrypoint-initdb.d/db'
+    ports:
+      - ${SQL_PORT}:3306
+    networks:
+      - shopping.scene.social.media.network
+
+  phpmyadmin:
+    container_name: ${PMA_CONTAINER}
+    image: phpmyadmin:latest
+    ports:
+      - ${PMA_PORT}:80
+    environment:
+      - PMA_ARBITRARY=1
+    networks:
+      - shopping.scene.social.media.network
+    restart: always  # Added restart policy
+
+  tiktok:
+    container_name: ${TIKTOK_CONTAINER}
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile
+    volumes:
+      - ./tiktok_server:/app
+    restart: always
+    expose:
+      - ${TIKTOK_PORT}
+    ports:
+      - ${TIKTOK_PORT}:${TIKTOK_PORT}
+    networks:
+      - shopping.scene.social.media.network
+    command: [ "npm", "run", "dev" ] # This overrides the CMD in the Dockerfile
+
+volumes:
+  shopping-scene-social-media-db-volume:
+
+networks:
+  shopping.scene.social.media.network:
+    name : shopping.scene.social.media.network
+    driver: bridge
