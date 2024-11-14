@@ -14,12 +14,12 @@ class Linkedin_profiles extends \CodeIgniter\Controller
         $app_callback = get_module_url();
 
         if(get("error") == "unauthorized_scope_error"){
-            set_session(["linkedin_scopes" => "r_emailaddress r_liteprofile w_member_social"]);
+            set_session(["linkedin_scopes" => "email openid r_liteprofile profile r_basicprofile w_member_social"]);
             redirect_to( get_module_url("oauth") );
         }else{
-            $app_scopes = "r_emailaddress r_basicprofile r_liteprofile w_member_social w_organization_social r_organization_social rw_organization_admin";
+            $app_scopes = "email r_basicprofile openid profile w_member_social w_organization_social r_organization_social rw_organization_admin";
             if(get_session('linkedin_scopes')){
-                 $app_scopes = get_session('set_session');
+                 $app_scopes = get_session('linkedin_scopes');
             }
         }
         
@@ -50,19 +50,18 @@ class Linkedin_profiles extends \CodeIgniter\Controller
             if($access_token){
                 $response = $this->linkedin->getPerson($access_token);
 
-                $firstName_param = (array)$response->firstName->localized;
-                $lastName_param = (array)$response->lastName->localized;
+                $firstName_param = (array)$response->given_name;
+                $lastName_param = (array)$response->family_name;
 
                 $firstName = reset($firstName_param);
                 $lastName = reset($lastName_param);
                 $fullname = $firstName." ".$lastName;
-
-                $avatar = (array)$response->profilePicture; 
-                $avatar = $avatar['displayImage~']->elements[0]->identifiers[0]->identifier;
+                $avatar = $response->picture;
+               // $avatar = $avatar['displayImage~']->elements[0]->identifiers[0]->identifier;
 
                 $result = [];
                 $result[] = (object)[
-                    'id' => $response->id,
+                    'id' => $response->sub,
                     'name' => $fullname,
                     'avatar' => $avatar,
                     'desc' => $fullname
@@ -122,6 +121,7 @@ class Linkedin_profiles extends \CodeIgniter\Controller
 
         if(!is_string($response)){
 
+            $response->id = $response->sub;
             if(in_array($response->id, $ids)){
 
                 $vanityName = "";
@@ -129,11 +129,14 @@ class Linkedin_profiles extends \CodeIgniter\Controller
                     $vanityName = $response->vanityName;
                 }
 
-                $firstName_param = (array)$response->firstName->localized;
-                $lastName_param = (array)$response->lastName->localized;
+
+                $firstName_param = (array)$response->given_name;
+                $lastName_param = (array)$response->family_name;
 
                 $firstName = reset($firstName_param);
                 $lastName = reset($lastName_param);
+                $fullname = $firstName." ".$lastName;
+                $avatar = $response->picture;
                 $fullname = $firstName." ".$lastName;
 
                 $item = db_get('*', TB_ACCOUNTS, "social_network = 'linkedin' AND team_id = '{$team_id}' AND pid = '".$response->id."'");
@@ -141,8 +144,7 @@ class Linkedin_profiles extends \CodeIgniter\Controller
 
                     //Check limit number 
                     check_number_account("linkedin", "profile");
-                    $avatar = (array)$response->profilePicture; 
-                    $avatar = $avatar['displayImage~']->elements[0]->identifiers[0]->identifier;
+                    $avatar = $response->picture;
                     $avatar = save_img( $avatar, WRITEPATH.'avatar/' );
                     $data = [
                         'ids' => ids(),

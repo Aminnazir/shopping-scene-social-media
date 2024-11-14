@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libzip-dev \
     libxml2-dev \
+    ffmpeg \
+    libavcodec-extra \
     git \
     && docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
@@ -40,6 +42,9 @@ RUN echo "upload_max_filesize=100M" >> /usr/local/etc/php/php.ini \
 
 RUN echo "upload_max_filesize = 100M" >> /usr/local/etc/php/conf.d/uploads.ini
 RUN echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/uploads.ini
+
+RUN echo "allow_url_fopen = On" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "allow_url_fopen = On" >> /usr/local/etc/php/php.ini
 
 # Expose port 80
 EXPOSE 80

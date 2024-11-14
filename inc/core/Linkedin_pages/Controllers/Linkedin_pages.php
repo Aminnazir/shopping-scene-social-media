@@ -12,7 +12,7 @@ class Linkedin_pages extends \CodeIgniter\Controller
         $app_id = get_option('linkedin_api_key', '');
         $app_secret = get_option('linkedin_api_secret', '');
         $app_callback = get_module_url();
-        $app_scopes = "r_emailaddress r_basicprofile r_liteprofile w_member_social w_organization_social r_organization_social rw_organization_admin";
+        $app_scopes = "email r_basicprofile openid profile w_member_social w_organization_social r_organization_social rw_organization_admin";
         $ssl = false;
 
         if($app_id == "" || $app_secret == ""){

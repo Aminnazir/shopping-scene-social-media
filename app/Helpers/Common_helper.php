@@ -1789,11 +1789,14 @@ if( !function_exists('get_header') ){
 
 if( !function_exists('is_video') ){
     function is_video($path)
-    {   
+    {
         try {
             if (stripos($path, FCPATH) === false && stripos($path, "http://") === false && stripos($path, "https://") === false) { 
                 $path = get_file_url($path);
             }
+
+            $path = remove_port_from_url($path);
+
 
             $stream_opts = [
                 "ssl" => [
@@ -2929,4 +2932,27 @@ if (!function_exists("languages")) {
 
         return $languages;
     }
+}
+
+function remove_port_from_url($url) {
+    // Parse the URL into its components
+
+  #  return $url;
+    $parsed_url = parse_url($url);
+
+    // If the URL contains a port, remove it
+    if (isset($parsed_url['port'])) {
+        // Remove the port part from the URL
+        unset($parsed_url['port']);
+    }
+
+    // Rebuild the URL without the port
+    // We need to reconstruct the URL manually with the components from parse_url
+    $url_without_port = (isset($parsed_url['scheme']) ? $parsed_url['scheme'] . '://' : '') .
+        (isset($parsed_url['host']) ? $parsed_url['host'] : '') .
+        (isset($parsed_url['path']) ? $parsed_url['path'] : '') .
+        (isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '') .
+        (isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '');
+
+    return $url_without_port;
 }

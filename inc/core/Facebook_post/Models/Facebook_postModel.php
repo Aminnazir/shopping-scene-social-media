@@ -199,7 +199,7 @@ class Facebook_postModel extends Model
                                                     ];
 
                                                     $response = $this->fb->post( $endpoint.'video_reels', $params, $post->account->token)->getDecodedBody();
-                                                    
+
                                                     $post_id = $create_upload_session["video_id"]; 
                                                     return [
                                                         "status" => "success",
